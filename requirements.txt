@@ -1,0 +1,18 @@
+# The connection to Google Gemini
+langchain-google-genai
+google-generativeai
+
+# The framework to build the AI app
+langchain
+
+# To read PDF files
+pypdf
+
+# The Database for your vectors (Free & Local)
+chromadb
+
+# To manage environment variables
+python-dotenv
+
+# For the website UI (Phase 3)
+streamlit
