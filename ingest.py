@@ -25,8 +25,6 @@ def main() -> None:
 
     for pdf_path in pdf_paths:
         docs = load_single_pdf(str(pdf_path))
-
-        # PyPDFLoader usually returns 1 LangChain Document per page
         pages_in_this_pdf = len(docs)
         total_pages += pages_in_this_pdf
 
