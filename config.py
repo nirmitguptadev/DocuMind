@@ -1,6 +1,3 @@
-# config.py
-
-# NEW, correct import from the dedicated package
 from langchain_huggingface import HuggingFaceEmbeddings
 
 def configure_embeddings() -> HuggingFaceEmbeddings:

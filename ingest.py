@@ -1,41 +1,69 @@
-from pathlib import Path
+import os
 from document_loader import load_single_pdf
-
-DATA_DIR = Path(__file__).parent / "data"
-
-
-def find_pdfs(data_dir: Path) -> list[Path]:
-    """Recursively find all PDF files under the data directory."""
-    return sorted(data_dir.rglob("*.pdf"))
+from text_splitter import split_documents
+from config import configure_embeddings
+from langchain_community.vectorstores import Chroma
 
 
-def main() -> None:
-    if not DATA_DIR.exists():
-        raise FileNotFoundError(f"Missing data directory: {DATA_DIR}")
+DATA_FOLDER = "data"
 
-    pdf_paths = find_pdfs(DATA_DIR)
+DB_PATH = "chroma_db"
 
-    if not pdf_paths:
-        print(f"0 PDFs found in {DATA_DIR}")
+def ingest_documents():
+    """
+    Loads PDFs, splits them into chunks, and stores them in a local ChromaDB.
+    """
+   
+    if not os.path.exists(DATA_FOLDER):
+        print(f"Error: Data folder '{DATA_FOLDER}' not found.")
         return
 
-    print(f"Found {len(pdf_paths)} PDF(s) in {DATA_DIR}:")
+    # 2. Load all PDF files in the data directory
+    all_chunks = []
+    pdf_files = [f for f in os.listdir(DATA_FOLDER) if f.endswith('.pdf')]
+    
+    if not pdf_files:
+        print("No PDF files found in the data directory.")
+        return
 
-    total_pages = 0
+    print(f"Found {len(pdf_files)} PDF(s) to process.")
 
-    for pdf_path in pdf_paths:
-        docs = load_single_pdf(str(pdf_path))
-        pages_in_this_pdf = len(docs)
-        total_pages += pages_in_this_pdf
+    for filename in pdf_files:
+        file_path = os.path.join(DATA_FOLDER, filename)
+        print(f"Loading {filename}...")
+        
+        try:
+           
+            raw_docs = load_single_pdf(file_path)
+            
+            
+            chunks = split_documents(raw_docs)
+            all_chunks.extend(chunks)
+            print(f" -> Processed {filename}: {len(chunks)} chunks generated.")
+            
+        except Exception as e:
+            print(f"Failed to process {filename}: {e}")
 
-        print(f" - {pdf_path.name} -> {pages_in_this_pdf} page(s)")
+    if not all_chunks:
+        print("No document chunks to store.")
+        return
 
-    total_documents = len(pdf_paths)
+    
+    print("\nInitializing Embeddings Model...")
+    embeddings = configure_embeddings()
 
-    print("\n✅ Ingest complete!!!! ^-^")
-    print(f"Total documents loaded: {total_documents}")
-    print(f"Total pages loaded: {total_pages}")
-
+    
+    print(f"\nCreating Vector Store at '{DB_PATH}'...")
+    
+    
+    vector_db = Chroma.from_documents(
+        documents=all_chunks,
+        embedding=embeddings,
+        persist_directory=DB_PATH
+    )
+    
+    print("--- Ingestion Complete! ---")
+    print(f"Successfully stored {len(all_chunks)} chunks in the vector database.")
 
 if __name__ == "__main__":
-    main()
+    ingest_documents()
