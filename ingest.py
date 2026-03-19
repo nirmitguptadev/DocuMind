@@ -2,7 +2,7 @@ import os
 from document_loader import load_single_pdf
 from text_splitter import split_documents
 from config import configure_embeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 
 
 DATA_FOLDER = "data"

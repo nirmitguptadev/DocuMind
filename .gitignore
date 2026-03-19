@@ -4,6 +4,7 @@ env/
 
 # Ignore environment variables (Protect your API Key!)
 .env
+.ragbox
 
 # Ignore Python cache files
 __pycache__/
