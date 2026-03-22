@@ -1,27 +1,69 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from schemas import QueryRequest, QueryResponse, DocumentSource
+from rag_chain import create_rag_chain
 
-# Initialize the FastAPI application
+
 app = FastAPI(
     title="DocuMind API",
     description="Backend API for the DocuMind RAG Application",
     version="1.0.0"
 )
 
+# Initialize the RAG chain when the server starts.
+
+print("Starting up: Initializing RAG chain...")
+try:
+    rag_chain = create_rag_chain()
+    print("RAG chain initialized successfully!")
+except Exception as e:
+    print(f"Error initializing RAG chain: {e}")
+    rag_chain = None
+
 @app.get("/")
 async def root():
-    """
-    Root endpoint that welcomes the user.
-    """
-    return {"message": "Welcome to the DocuMind API. Go to /docs for the API interface."}
+    return {"message": "Welcome to the DocuMind API. Go to /docs for the interactive API interface."}
 
 @app.get("/health")
 async def health_check():
-    """
-    A simple health check endpoint to verify the server is running.
-    This is crucial for Docker and DevOps deployment later.
-    """
-    return {
-        "status": "healthy", 
-        "message": "DocuMind API is up and running!"
-    }
+    return {"status": "healthy", "message": "DocuMind API is up and running!"}
 
+
+@app.post("/ask", response_model=QueryResponse)
+async def ask_question(request: QueryRequest):
+    """
+    Receives a user question, processes it through the RAG chain, 
+    and returns the generated answer along with the source documents.
+    """
+    # 1. Safety check
+    if not rag_chain:
+        raise HTTPException(status_code=500, detail="RAG chain is not initialized. Check server logs.")
+
+    try:
+        print(f"Received query: '{request.query}'")
+        
+        # 2. Pass the user's question from the Pydantic schema into the LCEL chain
+        response = rag_chain.invoke(request.query)
+        
+        # 3. Extract the answer and source documents from the chain's dictionary output
+        answer_text = response.get("answer", "I could not generate an answer.")
+        source_docs = response.get("context",[])
+        
+        # 4. Format the source documents to match our Pydantic DocumentSource schema
+        formatted_sources =[]
+        for doc in source_docs:
+            formatted_sources.append(
+                DocumentSource(
+                    page_content=doc.page_content,
+                    metadata=doc.metadata
+                )
+            )
+        
+        # 5. Return the final structured response (FastAPI converts this to JSON automatically!)
+        return QueryResponse(
+            answer=answer_text,
+            sources=formatted_sources
+        )
+        
+    except Exception as e:
+        print(f"Error processing query: {e}")
+        raise HTTPException(status_code=500, detail=f"An error occurred while processing your request: {str(e)}")
