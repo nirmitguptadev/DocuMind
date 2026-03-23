@@ -14,6 +14,7 @@ langchain_text_splitters # For the chunking logic
 
 
 chromadb
+langchain-chroma
 
 
 sentence-transformers  # The underlying model engine
