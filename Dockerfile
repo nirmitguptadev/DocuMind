@@ -1,26 +1,43 @@
-
-FROM python:3.10-slim
-
+# ==========================================
+# STAGE 1: The Builder (Heavy and Temporary)
+# ==========================================
+FROM python:3.10-slim AS builder
 
 WORKDIR /app
 
-# 3. System dependencies (sometimes needed for building Python packages like chroma)
-RUN apt-get update && apt-get install -y build-essential \
+# Install system dependencies required for compiling Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. Copy ONLY the requirements file first. 
-# This is a Docker trick to cache the installation step and make future builds much faster!
+# Create a Python virtual environment inside the builder
+RUN python -m venv /opt/venv
+# Activate the virtual environment
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements and install them INTO the virtual environment
 COPY requirements.txt .
 
-# 5. Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Notice there is only one 'RUN' here, and we added the CPU flag!
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
-# 6. Copy the rest of your application code into the container
+# ==========================================
+# STAGE 2: The Final Runner (Light and Fast)
+# ==========================================
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# COPY the completed virtual environment from the "builder" stage!
+COPY --from=builder /opt/venv /opt/venv
+
+# Activate the virtual environment in this new container
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy your actual application code
 COPY . .
 
-# 7. Expose the port that Uvicorn/FastAPI will run on
+# Expose the API port
 EXPOSE 8000
 
-# 8. The command to start the server when the container launches
-# Notice we use 0.0.0.0 so it is accessible from outside the container
+# Start the FastAPI server
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
