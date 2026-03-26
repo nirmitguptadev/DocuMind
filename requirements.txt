@@ -20,7 +20,7 @@ langchain-chroma
 sentence-transformers  # The underlying model engine
 langchain-huggingface  # The LangChain integration for it
 
-
+requests
 
 
 langchain-groq         # The LangChain integration for the Groq API
