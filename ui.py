@@ -11,17 +11,21 @@ st.set_page_config(page_title="DocuMind", layout="wide")
 
 st.title("DocuMind AI")
 
-# Initialize session state
 if "history" not in st.session_state:
     st.session_state.history = []
 
-query = st.text_input("Enter your question:")
+query = st.text_input("enter the question:")
 
-if st.button("Ask"):
+if st.button("ask"):
     if query:
-        st.session_state.history.append({"question": query, "answer": "..."})
+        result = ask_backend(query)
+        answer = result.get("answer", "no response")
 
-# Display chat history
+        st.session_state.history.append({
+            "question": query,
+            "answer": answer
+        })
+
 for chat in st.session_state.history:
-    st.write(f"**You:** {chat['question']}")
-    st.write(f"**Bot:** {chat['answer']}")
+    st.write(f"**you:** {chat['question']}")
+    st.write(f"**bot:** {chat['answer']}")
