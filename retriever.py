@@ -22,7 +22,14 @@ def get_retriever():
 
     # Load the existing database from disk
     print(f"Connecting to vector database at '{DB_PATH}'...")
-    db = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
+    db = Chroma(
+    persist_directory=DB_PATH,
+    embedding_function=embeddings,
+    client_settings={
+        "host": "chromadb",
+        "port": 8000
+    }
+)
     
     # Create the retriever
     # search_kwargs={"k": 4} tells it to return the top 4 most relevant chunks
