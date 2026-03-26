@@ -1,5 +1,12 @@
 import streamlit as st
+import requests
 
+API_URL = "http://localhost:8000/ask"
+
+def ask_backend(question):
+    response = requests.post(API_URL, json={"query": question})
+    return response.json()
+    
 st.set_page_config(page_title="DocuMind", layout="wide")
 
 st.title("DocuMind AI")
