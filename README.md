@@ -2,7 +2,7 @@
 
 DocuMind is an intelligent Retrieval-Augmented Generation (RAG) application that allows you to chat with your local documents using a powerful mixture of local embedding models and cloud-based LLM inference.
 
-![Screenshot of DocuMind AI Interface](static/Screenshot 2026-03-30 155217.png)
+![Screenshot of DocuMind AI Interface](static/Screenshot%202026-03-30%20155217.png)
 ## 🏗️ Architecture
 
 DocuMind is built with the following core technologies over a Dockerized setup:
