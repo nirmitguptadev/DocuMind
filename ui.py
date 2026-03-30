@@ -3,7 +3,8 @@ import requests
 
 API_URL = "http://localhost:8000/ask"
 UPLOAD_URL = "http://localhost:8000/upload"
-
+DOCS_URL = "http://localhost:8000/documents"
+CLEAR_URL = "http://localhost:8000/clear"
 def ask_backend(question):
     response = requests.post(API_URL, json={"query": question})
     response.raise_for_status()
@@ -12,6 +13,19 @@ def ask_backend(question):
 def upload_to_backend(uploaded_file):
     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
     response = requests.post(UPLOAD_URL, files=files)
+    response.raise_for_status()
+    return response.json()
+
+def fetch_documents():
+    try:
+        response = requests.get(DOCS_URL)
+        response.raise_for_status()
+        return response.json()
+    except Exception:
+        return {"documents": []}
+
+def clear_database():
+    response = requests.post(CLEAR_URL)
     response.raise_for_status()
     return response.json()
 
@@ -56,6 +70,32 @@ with st.sidebar:
                     st.success(result.get("message", "File processed effectively!"))
                 except requests.exceptions.RequestException as e:
                     st.error(f"Error communicating with backend: {e}")
+
+    st.divider()
+    st.header("🗄️ Database Management")
+    
+    docs_result = fetch_documents()
+    docs = docs_result.get("documents", [])
+    
+    if docs:
+        st.markdown(f"**Embedded files ({len(docs)}):**")
+        for doc in docs:
+            st.markdown(f"- `{doc}`")
+    else:
+        st.markdown("*Database is empty.*")
+        
+    st.divider()
+    
+    if st.button("Clear Database", type="primary", help="⚠️ WARNING: This will permanently wipe all embedded documents from the database. You will have to re-upload them to chat again."):
+        with st.spinner("Wiping DB and refreshing RAG pipeline..."):
+            try:
+                res = clear_database()
+                # Ensure the user's active session history disappears alongside DB logic
+                st.session_state.messages = []
+                st.success(res.get("message", "Database successfully expunged!"))
+                st.rerun()
+            except Exception as e:
+                st.error(f"Failed to clear database: {e}")
 
 # Initialize chat history
 if "messages" not in st.session_state:

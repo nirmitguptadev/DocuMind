@@ -1,4 +1,5 @@
 import os
+import chromadb
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from schemas import QueryRequest, QueryResponse, DocumentSource
 from rag_chain import create_rag_chain
@@ -65,6 +66,43 @@ async def upload_document(file: UploadFile = File(...)):
         print(f"Error during file ingest: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to ingest file: {str(e)}")
 
+@app.get("/documents")
+async def get_documents():
+    """Returns a list of unique document filenames in the database."""
+    try:
+        client = chromadb.HttpClient(host="chromadb", port=8000)
+        collection = client.get_or_create_collection("documind")
+        res = collection.get(include=["metadatas"])
+        
+        sources = set()
+        if res and res.get("metadatas"):
+            for m in res["metadatas"]:
+                if m and "source" in m:
+                    filename = os.path.basename(m["source"])
+                    sources.add(filename)
+        return {"documents": list(sources)}
+    except Exception as e:
+        print(f"Error fetching docs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch document list.")
+
+@app.post("/clear")
+async def clear_database():
+    """Drops the entire ChromaDB collection and reloads the RAG chain."""
+    global rag_chain
+    try:
+        client = chromadb.HttpClient(host="chromadb", port=8000)
+        client.delete_collection("documind")
+        print("Collection deleted")
+    except Exception as e:
+        print(f"Collection might already be empty or missing: {e}")
+        
+    try:
+        print("Re-initializing RAG chain after wipe...")
+        rag_chain = create_rag_chain()
+        return {"message": "Database successfully cleared!"}
+    except Exception as e:
+        print(f"Error re-initializing chain: {e}")
+        raise HTTPException(status_code=500, detail="Cleared DB, but failed to reload chain.")
 
 @app.post("/ask", response_model=QueryResponse)
 async def ask_question(request: QueryRequest):
