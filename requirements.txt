@@ -29,4 +29,5 @@ langchain-groq         # The LangChain integration for the Groq API
 python-dotenv          # For managing API keys in the .env file
 
 fastapi
+python-multipart
 uvicorn

@@ -2,9 +2,16 @@ import streamlit as st
 import requests
 
 API_URL = "http://localhost:8000/ask"
+UPLOAD_URL = "http://localhost:8000/upload"
 
 def ask_backend(question):
     response = requests.post(API_URL, json={"query": question})
+    response.raise_for_status()
+    return response.json()
+
+def upload_to_backend(uploaded_file):
+    files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
+    response = requests.post(UPLOAD_URL, files=files)
     response.raise_for_status()
     return response.json()
 
@@ -33,6 +40,22 @@ st.set_page_config(page_title="DocuMind AI", layout="centered", page_icon="🧠"
 
 st.title("🧠 DocuMind AI")
 st.markdown("Ask questions about your uploaded documents! The knowledge base uses local embeddings and the Groq LLM.")
+
+# File Uploader Sidebar
+with st.sidebar:
+    st.header("📄 Upload Document")
+    st.markdown("Upload a PDF to expand your knowledge base.")
+    
+    uploaded_file = st.file_uploader("Select a PDF file", type=["pdf"])
+    
+    if uploaded_file is not None:
+        if st.button("Upload and Embed"):
+            with st.spinner(f"Ingesting '{uploaded_file.name}' into vector DB..."):
+                try:
+                    result = upload_to_backend(uploaded_file)
+                    st.success(result.get("message", "File processed effectively!"))
+                except requests.exceptions.RequestException as e:
+                    st.error(f"Error communicating with backend: {e}")
 
 # Initialize chat history
 if "messages" not in st.session_state:

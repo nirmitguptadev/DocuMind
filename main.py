@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+import os
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from schemas import QueryRequest, QueryResponse, DocumentSource
 from rag_chain import create_rag_chain
 
@@ -26,6 +27,43 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "message": "DocuMind API is up and running!"}
+
+@app.post("/upload")
+async def upload_document(file: UploadFile = File(...)):
+    """
+    Receives a PDF upload, embeds it into ChromaDB, and cleans up the file.
+    """
+    if not file.filename.endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+    
+    # Save the file temporarily in data directory
+    temp_file_path = f"data/{file.filename}"
+    # Ensure data directory exists
+    os.makedirs("data", exist_ok=True)
+    
+    try:
+        with open(temp_file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+            
+        print(f"File saved to {temp_file_path}, starting embedding process...")
+        
+        # Ingest the file using the new helper
+        from ingest import ingest_single_pdf_file
+        num_chunks = ingest_single_pdf_file(temp_file_path)
+        
+        # Delete file after successful processing as per user request
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+            
+        return {"message": f"Successfully processed and embedded {num_chunks} chunks from {file.filename}."}
+        
+    except Exception as e:
+        # Cleanup on failure
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+        print(f"Error during file ingest: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to ingest file: {str(e)}")
 
 
 @app.post("/ask", response_model=QueryResponse)

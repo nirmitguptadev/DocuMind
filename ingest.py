@@ -9,6 +9,36 @@ DATA_FOLDER = "data"
 
 import chromadb
 
+def ingest_single_pdf_file(file_path: str):
+    """
+    Ingests a single PDF file: loads, splits, and embeds it into ChromaDB.
+    """
+    print(f"Loading {file_path} for single ingestion...")
+    raw_docs = load_single_pdf(file_path)
+    if not raw_docs:
+        raise ValueError(f"No documents were loaded from {file_path}")
+        
+    chunks = split_documents(raw_docs)
+    if not chunks:
+        raise ValueError("No chunks generated from the document")
+    
+    print(f" -> Processed {os.path.basename(file_path)}: {len(chunks)} chunks generated.")
+    
+    print("Initializing Embeddings Model...")
+    embeddings = configure_embeddings()
+    
+    print("Connecting to ChromaDB service at 'chromadb:8000'...")
+    chroma_client = chromadb.HttpClient(host="chromadb", port=8000)
+    
+    Chroma.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        client=chroma_client,
+        collection_name="documind"
+    )
+    print("--- Single File Ingestion Complete! ---")
+    return len(chunks)
+
 def ingest_documents():
     """
     Loads PDFs, splits them into chunks, and stores them in a local ChromaDB.
