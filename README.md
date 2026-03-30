@@ -2,6 +2,7 @@
 
 DocuMind is an intelligent Retrieval-Augmented Generation (RAG) application that allows you to chat with your local documents using a powerful mixture of local embedding models and cloud-based LLM inference.
 
+![Screenshot of DocuMind AI Interface](static/Screenshot 2026-03-30 155217.png)
 ## 🏗️ Architecture
 
 DocuMind is built with the following core technologies over a Dockerized setup:
@@ -42,15 +43,18 @@ docker-compose up -d --build
 ```
 This will start the **ChromaDB** container at `localhost:8001` and the **FastAPI Backend** inside the `documind-backend` container at `localhost:8000`.
 
-### Step 4: Ingest your Documents
-To populate Chroma DB with embeddings:
-1. Copy target `.pdf` files inside the `data/` folder in the project workspace.
-2. Inside your backend Docker container (or via an equivalent host-level environment mapped directly natively), execute `ingest.py`.
-
-### Step 5: Launch the Chat UI
-Finally, launch the local frontend to begin questioning your repository knowledge base:
+### Step 4: Launch the Chat UI
+Launch the local frontend to begin questioning your repository knowledge base:
 
 ```bash
 streamlit run ui.py
 ```
+
+### Step 5: Ingest documents from the UI
+Once the Streamlit interface boots up in your browser, you can easily load context into your Chroma vector database directly from the application!
+1. Look at the **Upload Document** section on the left sidebar.
+2. Select your target `.pdf` file.
+3. Click **Upload and Embed**.
+4. You can freely monitor your successfully embedded documents in the **Database Management** section and clear your database if you want to start fresh!
+
 Enjoy chatting with your local documents!
