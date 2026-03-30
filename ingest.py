@@ -7,7 +7,7 @@ from langchain_chroma import Chroma
 
 DATA_FOLDER = "data"
 
-DB_PATH = "chroma_db"
+import chromadb
 
 def ingest_documents():
     """
@@ -53,13 +53,14 @@ def ingest_documents():
     embeddings = configure_embeddings()
 
     
-    print(f"\nCreating Vector Store at '{DB_PATH}'...")
-    
+    print(f"\nConnecting to ChromaDB service at 'chromadb:8000'...")
+    chroma_client = chromadb.HttpClient(host="chromadb", port=8000)
     
     vector_db = Chroma.from_documents(
         documents=all_chunks,
         embedding=embeddings,
-        persist_directory=DB_PATH
+        client=chroma_client,
+        collection_name="documind"
     )
     
     print("--- Ingestion Complete! ---")

@@ -2,34 +2,26 @@ import os
 from langchain_chroma import Chroma
 from config import configure_embeddings
 
-# Define where the vector database is saved locally (same as in ingest.py)
-DB_PATH = "chroma_db"
+import chromadb
 
 def get_retriever():
     """
-    Loads the existing Chroma vector database and returns a configured retriever.
+    Connects to the Chroma vector database and returns a configured retriever.
     """
-    # Check if the database folder exists
-    if not os.path.exists(DB_PATH):
-        raise FileNotFoundError(
-            f"Vector database not found at '{DB_PATH}'. "
-            "Please run ingest.py first to create the database."
-        )
 
     # We need the same embedding model to embed the user's search query
     print("Loading local embeddings model for search...")
     embeddings = configure_embeddings()
 
     # Load the existing database from disk
-    print(f"Connecting to vector database at '{DB_PATH}'...")
+    print("Connecting to ChromaDB service at 'chromadb:8000'...")
+    chroma_client = chromadb.HttpClient(host="chromadb", port=8000)
+    
     db = Chroma(
-    persist_directory=DB_PATH,
-    embedding_function=embeddings,
-    client_settings={
-        "host": "chromadb",
-        "port": 8000
-    }
-)
+        client=chroma_client,
+        embedding_function=embeddings,
+        collection_name="documind"
+    )
     
     # Create the retriever
     # search_kwargs={"k": 4} tells it to return the top 4 most relevant chunks
