@@ -1,9 +1,9 @@
-# DocuMind AI 🧠
+# DocuMind AI
 
 DocuMind is an intelligent Retrieval-Augmented Generation (RAG) application that allows you to chat with your local documents using a powerful mixture of local embedding models and cloud-based LLM inference.
 
 ![Screenshot of DocuMind AI Interface](static/Screenshot%202026-03-30%20155217.png)
-## 🏗️ Architecture
+## Architecture
 
 DocuMind is built with the following core technologies over a Dockerized setup:
 * **Embeddings Model**: `all-MiniLM-L6-v2` via HuggingFace (runs completely locally). This gives us privacy and speed for standard document ingestion without generating per-token API fees for the retrieval phase.
@@ -12,7 +12,7 @@ DocuMind is built with the following core technologies over a Dockerized setup:
 * **Frontend**: A clean, streamlined chat interface powered by **Streamlit**.
 * **LLM Engine**: **Groq**. We use Groq to power high-speed generation of the answer text via Langchain's integration (i.e., `ChatGroq`).
 
-## 🚀 Getting Started
+## Getting Started 8===3
 
 ### Prerequisites
 Make sure you have:
