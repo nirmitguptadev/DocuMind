@@ -27,8 +27,8 @@ def ingest_single_pdf_file(file_path: str):
     print("Initializing Embeddings Model...")
     embeddings = configure_embeddings()
     
-    print("Connecting to ChromaDB service at 'chromadb:8000'...")
-    chroma_client = chromadb.HttpClient(host="chromadb", port=8000)
+    print("Connecting to local ChromaDB at './chroma_db'...")
+    chroma_client = chromadb.PersistentClient(path="./chroma_db")
     
     Chroma.from_documents(
         documents=chunks,
@@ -83,8 +83,8 @@ def ingest_documents():
     embeddings = configure_embeddings()
 
     
-    print(f"\nConnecting to ChromaDB service at 'chromadb:8000'...")
-    chroma_client = chromadb.HttpClient(host="chromadb", port=8000)
+    print(f"\nConnecting to local ChromaDB at './chroma_db'...")
+    chroma_client = chromadb.PersistentClient(path="./chroma_db")
     
     vector_db = Chroma.from_documents(
         documents=all_chunks,

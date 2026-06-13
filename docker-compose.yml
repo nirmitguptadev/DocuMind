@@ -1,26 +1,15 @@
 version: '3.8'
 
 services:
-  backend:
+  documind:
     build: 
       context: .
       dockerfile: Dockerfile
-    container_name: documind-backend
+    container_name: documind-app
     ports:
       - "8000:8000"
+      - "7860:7860"
     volumes:
       - .:/app
     env_file:
       - .env
-    depends_on:
-      - chromadb
-
-  chromadb:
-    image: chromadb/chroma
-    container_name: chromadb
-    ports:
-      - "8001:8000"
-    volumes:
-      - chroma_data:/chroma
-volumes:
-  chroma_data:

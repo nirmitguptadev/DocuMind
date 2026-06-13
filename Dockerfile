@@ -36,8 +36,12 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy your actual application code
 COPY . .
 
-# Expose the API port
-EXPOSE 8000
+# Make the run script executable
+RUN chmod +x run.sh
 
-# Start the FastAPI server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Expose the API and Streamlit ports (Hugging Face Spaces uses 7860)
+EXPOSE 8000
+EXPOSE 7860
+
+# Start both services using the run script
+CMD ["bash", "run.sh"]

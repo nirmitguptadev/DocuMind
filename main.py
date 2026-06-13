@@ -70,7 +70,7 @@ async def upload_document(file: UploadFile = File(...)):
 async def get_documents():
     """Returns a list of unique document filenames in the database."""
     try:
-        client = chromadb.HttpClient(host="chromadb", port=8000)
+        client = chromadb.PersistentClient(path="./chroma_db")
         collection = client.get_or_create_collection("documind")
         res = collection.get(include=["metadatas"])
         
@@ -90,7 +90,7 @@ async def clear_database():
     """Drops the entire ChromaDB collection and reloads the RAG chain."""
     global rag_chain
     try:
-        client = chromadb.HttpClient(host="chromadb", port=8000)
+        client = chromadb.PersistentClient(path="./chroma_db")
         client.delete_collection("documind")
         print("Collection deleted")
     except Exception as e:

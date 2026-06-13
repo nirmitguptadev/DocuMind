@@ -14,8 +14,8 @@ def get_retriever():
     embeddings = configure_embeddings()
 
     # Load the existing database from disk
-    print("Connecting to ChromaDB service at 'chromadb:8000'...")
-    chroma_client = chromadb.HttpClient(host="chromadb", port=8000)
+    print("Connecting to local ChromaDB at './chroma_db'...")
+    chroma_client = chromadb.PersistentClient(path="./chroma_db")
     
     db = Chroma(
         client=chroma_client,

@@ -1,31 +1,34 @@
 import streamlit as st
 import requests
+import time
 
-API_URL = "http://localhost:8000/ask"
-UPLOAD_URL = "http://localhost:8000/upload"
-DOCS_URL = "http://localhost:8000/documents"
-CLEAR_URL = "http://localhost:8000/clear"
+print(f"[{time.time()}] Streamlit executing ui.py...")
+
+API_URL = "http://127.0.0.1:8000/ask"
+UPLOAD_URL = "http://127.0.0.1:8000/upload"
+DOCS_URL = "http://127.0.0.1:8000/documents"
+CLEAR_URL = "http://127.0.0.1:8000/clear"
 def ask_backend(question):
-    response = requests.post(API_URL, json={"query": question})
+    response = requests.post(API_URL, json={"query": question}, timeout=120)
     response.raise_for_status()
     return response.json()
 
 def upload_to_backend(uploaded_file):
     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
-    response = requests.post(UPLOAD_URL, files=files)
+    response = requests.post(UPLOAD_URL, files=files, timeout=300)
     response.raise_for_status()
     return response.json()
 
 def fetch_documents():
     try:
-        response = requests.get(DOCS_URL)
+        response = requests.get(DOCS_URL, timeout=3)
         response.raise_for_status()
         return response.json()
     except Exception:
         return {"documents": []}
 
 def clear_database():
-    response = requests.post(CLEAR_URL)
+    response = requests.post(CLEAR_URL, timeout=10)
     response.raise_for_status()
     return response.json()
 
